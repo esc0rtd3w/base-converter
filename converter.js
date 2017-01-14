@@ -14,13 +14,41 @@ let labels = [
   'Output Base Digits: ',
   'Output: '
 ]
+
+let warn = '31m'
+let highlightDups = s => {
+  let chars = ['.'] // don't allow .
+  let out = ''
+  for (let i of s) {
+    if (chars.includes(i)) out += `${CSI}${warn}${i}${CSI}0m`
+    else {
+      chars.push(i)
+      out += i
+    }
+  }
+  return out
+}
+let highlightNum = (s, valid) => {
+  let out = ''
+  let points = 0
+  for (let i of s) {
+    if (valid.includes(i)) out += i
+    else if (i === '.') {
+      points++
+      if (points > 1) out += `${CSI}${warn}${i}${CSI}0m`
+      else out += '.'
+    } else out += `${CSI}${warn}${i}${CSI}0m`
+  }
+  return out
+}
+
 let draw = function () {
   process.stdout.write(`${CSI}2J`)
   process.stdout.write(`${CSI}1;1H`)
-  process.stdout.write(`${CSI}38;5;246m${labels[0]}${CSI}0m${inputDigits}\n`)
-  process.stdout.write(`${CSI}38;5;246m${labels[1]}${CSI}0m${input}\n`)
-  process.stdout.write(`${CSI}38;5;246m${labels[2]}${CSI}0m${outputDigits}\n`)
-  process.stdout.write(`${CSI}38;5;246m${labels[3]}${CSI}0m${output}`)
+  process.stdout.write(`${CSI}38;5;246m${labels[0]}${CSI}0m${highlightDups(inputDigits)}\n`)
+  process.stdout.write(`${CSI}38;5;246m${labels[1]}${CSI}0m${highlightNum(input, inputDigits)}\n`)
+  process.stdout.write(`${CSI}38;5;246m${labels[2]}${CSI}0m${highlightDups(outputDigits)}\n`)
+  process.stdout.write(`${CSI}38;5;246m${labels[3]}${CSI}0m${highlightNum(output, outputDigits)}`)
 
   let cursorX = labels[cursorPos[1]].length + cursorPos[0]
   let cursorY = cursorPos[1]
